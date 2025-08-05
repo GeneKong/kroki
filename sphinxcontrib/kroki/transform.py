@@ -1,6 +1,7 @@
 from typing import Any
 from pathlib import Path
 from os.path import relpath, dirname
+from os import fspath
 from docutils.nodes import image, SkipNode
 
 from .util import logger
@@ -24,7 +25,12 @@ class KrokiToImageTransform(SphinxTransform):
                 img["class"] = node["class"]
 
             out = self.render(node)
-            img["uri"] = relpath(out, source)
+            try:
+                # Try to compute relative path, but handle cross-drive case on Windows
+                img["uri"] = relpath(out, source)
+            except ValueError:
+                # If relpath fails (e.g., cross-drive on Windows), use absolute path
+                img["uri"] = fspath(out)
 
             node.replace_self(img)
 
